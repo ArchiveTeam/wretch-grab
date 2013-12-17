@@ -21,11 +21,6 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
     verdict = false
   end
 
-  if verdict then
-    io.stdout:write("Yes: "..url.."\n")
-    io.stdout:flush()
-  end
-
   return verdict
 end
 
