@@ -25,7 +25,7 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
 end
 
 wget.callbacks.httploop_result = function(url, err, http_stat)
-  local sleep_time = 20
+  local sleep_time = 60
   local status_code = http_stat["statcode"]
 
   if status_code >= 500 then
