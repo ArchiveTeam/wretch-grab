@@ -32,15 +32,14 @@ For more options, run:
 
     run-pipeline --help
 
-If you have a recent version of wget (1.14 or later) you may not need wget-lua.
 If you don't have root access and/or your version of pip is very old, you can replace "pip install seesaw" with:
 
-    wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py ; python get-pip.py --user ; ~/.local/bin/pip install --user seesaw ; chmod u+x build/seesaw/run-pipeline
+    wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py ; python get-pip.py --user ; ~/.local/bin/pip install --user seesaw
 
 so that pip and seesaw are installed in your home, then run
 
-    build/seesaw/run-pipeline pipeline.py --concurrent 2 YOURNICKHERE
-    
+    ~/.local/bin/run-pipeline pipeline.py --concurrent 2 YOURNICKHERE
+
 Running multiple instances on different IPs
 -------------------------------------------
 
