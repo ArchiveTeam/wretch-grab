@@ -19,6 +19,8 @@ Running with a warrior
 
 Follow the [instructions on the ArchiveTeam wiki](http://archiveteam.org/index.php?title=Warrior) for installing the Warrior, and select the "Hyves" project in the Warrior interface.
 
+Running without a warrior
+-------------------------
 To run this outside the warrior, clone this repository, cd into its directory and run:
 
     pip install seesaw
