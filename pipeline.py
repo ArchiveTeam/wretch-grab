@@ -50,9 +50,9 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20131224.01"
+VERSION = "20131224.02"
 
-USER_AGENT = random.choice(['Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
+USER_AGENTS = ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9) AppleWebKit/537.71 (KHTML, like Gecko) Version/7.0 Safari/537.71',
 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:25.0) Gecko/20100101 Firefox/25.0',
 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
@@ -70,7 +70,7 @@ USER_AGENT = random.choice(['Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537
 'Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:25.0) Gecko/20100101 Firefox/25.0',
 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
-'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)', ])
+'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)',)
 
 TRACKER_ID = 'wretch'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -89,6 +89,7 @@ class PrepareDirectories(SimpleTask):
 
     def process(self, item):
         item_name = item["item_name"]
+        item["user_agent"] = random.choice(USER_AGENTS)
         dirname = "/".join((item["data_dir"], item_name))
 
         if os.path.isdir(dirname):
@@ -116,7 +117,7 @@ class MoveFiles(SimpleTask):
 
 wget_args = [
     WGET_LUA,
-    "-U", USER_AGENT,
+    "-U", ItemInterpolation("%(user_agent)s"),
     "-nv",
     "-o", ItemInterpolation("%(item_dir)s/wget.log"),
     "--lua-script", "wretch.lua",
