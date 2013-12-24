@@ -50,7 +50,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20131224.02"
+VERSION = "20131224.80"
 
 USER_AGENTS = ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9) AppleWebKit/537.71 (KHTML, like Gecko) Version/7.0 Safari/537.71',
@@ -132,7 +132,7 @@ wget_args = [
     "--timeout", "60",
     "--tries", "inf",
     "--span-hosts",
-    "--waitretry", "3600",
+    "--waitretry", "1",
     "--domains", "yimg.com,wretch.cc",
     "--warc-file", ItemInterpolation("%(item_dir)s/%(warc_file_base)s"),
     "--warc-header", "operator: Archive Team",
