@@ -29,14 +29,16 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
   return verdict
 end
 
+-- The number of times we'll retry requests with code >= 500.
+-- If this hits zero, we skip the URL, reset the counter, and go to the next
+-- one.
+local retry_counter = 5
+
 wget.callbacks.httploop_result = function(url, err, http_stat)
   local sleep_time = 60
   local status_code = http_stat["statcode"]
 
   if status_code >= 500 then
-    io.stdout:write("\nYahoo!!! (code "..http_stat.statcode.."). Sleeping for ".. sleep_time .." seconds.\n")
-    io.stdout:flush()
-
     -- issue #1, skip broken web server
     if status_code == 502 and string.match(url["url"], "d%.yimg%.com") then
       io.stdout:write("(d.yimg.com skip)\n")
@@ -44,9 +46,21 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
       return wget.actions.EXIT
     end
 
-    -- Note that wget has its own linear backoff to this time as well
-    os.execute("sleep " .. sleep_time)
-    return wget.actions.CONTINUE
+    retry_counter = retry_counter - 1
+
+    if retry_counter <= 0 then
+      io.stdout:write("Skipping "..url["url"].." due to too many failures.\n")
+      io.stdout:flush()
+      retry_counter = 5
+      return wget.actions.EXIT
+    else
+      io.stdout:write("\nYahoo!!! (code "..http_stat.statcode.."). Sleeping for ".. sleep_time .." seconds.  Will retry "..retry_counter.." more times.\n")
+      io.stdout:flush()
+
+      -- Note that wget has its own linear backoff to this time as well
+      os.execute("sleep " .. sleep_time)
+      return wget.actions.CONTINUE
+    end
   else
     -- We're okay; sleep a bit (if we have to) and continue
     local sleep_time = 5.0 * (math.random(75, 125) / 100.0)
