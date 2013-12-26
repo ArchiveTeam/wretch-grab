@@ -74,3 +74,12 @@ wget.callbacks.get_urls = function(file, url, is_css, iri)
   end
 end
 
+wget.callbacks.lookup_host = function(host)
+  if string.match(host, "wretch%.cc") then
+     local table = {"216.115.107.207", "203.84.197.27", "203.84.197.26"}
+     return table[ math.random( #table ) ]
+   else
+     -- use normal DNS ip
+     return nil
+  end
+end
