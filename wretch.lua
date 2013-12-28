@@ -29,7 +29,7 @@ wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_pars
   return verdict
 end
 
--- The number of times we'll retry requests with code >= 500.
+-- The number of times we'll retry requests with code >= 500 and <= 599.
 -- If this hits zero, we skip the URL, reset the counter, and go to the next
 -- one.
 local retry_counter = 5
@@ -46,7 +46,9 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
       return wget.actions.EXIT
     end
 
-    retry_counter = retry_counter - 1
+    if status_code <= 599 then
+      retry_counter = retry_counter - 1
+    end
 
     if retry_counter <= 0 then
       io.stdout:write("Skipping "..url["url"].." due to too many failures.\n")
@@ -90,10 +92,10 @@ end
 
 wget.callbacks.lookup_host = function(host)
   if string.match(host, "wretch%.cc") then
-     local table = {"216.115.107.207", "203.84.197.27", "203.84.197.26"}
-     return table[ math.random( #table ) ]
-   else
-     -- use normal DNS ip
-     return nil
+    local table = {"216.115.107.207", "203.84.197.27", "203.84.197.26"}
+    return table[ math.random( #table ) ]
+  else
+    -- use normal DNS ip
+    return nil
   end
 end
