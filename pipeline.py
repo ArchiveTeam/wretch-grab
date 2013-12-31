@@ -107,7 +107,7 @@ class PrepareDirectories(SimpleTask):
 
 
 # https://gist.github.com/edufelipe/1027906
-def check_output(*popenargs, **kwargs):
+def check_output_for_grep(*popenargs, **kwargs):
     r"""Run command with arguments and return its output as a byte string.
 
     Backported from Python 2.7 as it's implemented as pure python on stdlib.
@@ -118,7 +118,7 @@ def check_output(*popenargs, **kwargs):
     process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
     output, unused_err = process.communicate()
     retcode = process.poll()
-    if retcode:
+    if retcode not in (0, 1): # XXX just for grep/zgrep
         cmd = kwargs.get("args")
         if cmd is None:
             cmd = popenargs[0]
@@ -139,7 +139,7 @@ class MoveFiles(SimpleTask):
         shutil.rmtree("%(item_dir)s" % item)
 
         try:
-            lines = check_output([
+            lines = check_output_for_grep([
                 "zgrep", "-P", "-o", '<option value=".+">', "%(data_dir)s/%(warc_file_base)s.warc.gz" % item]).split("\n")
             usernames = set(l.split('"')[1] for l in lines if l.strip() and not "schedule=" in l)
         except KeyboardInterrupt:
