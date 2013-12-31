@@ -3,6 +3,7 @@ from distutils.version import StrictVersion
 import os
 import random
 import seesaw
+import subprocess
 from seesaw.config import NumberConfigValue
 from seesaw.externalprocess import WgetDownload
 from seesaw.item import ItemInterpolation, ItemValue
@@ -50,7 +51,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20131228.00"
+VERSION = "20131231.01"
 
 USER_AGENTS = ('Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36',
 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9) AppleWebKit/537.71 (KHTML, like Gecko) Version/7.0 Safari/537.71',
@@ -104,6 +105,28 @@ class PrepareDirectories(SimpleTask):
         open("%(item_dir)s/%(warc_file_base)s.warc.gz" % item, "w").close()
 
 
+# https://gist.github.com/edufelipe/1027906
+def check_output(*popenargs, **kwargs):
+    r"""Run command with arguments and return its output as a byte string.
+
+    Backported from Python 2.7 as it's implemented as pure python on stdlib.
+
+    >>> check_output(['/usr/bin/python', '--version'])
+    Python 2.6.2
+    """
+    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+    output, unused_err = process.communicate()
+    retcode = process.poll()
+    if retcode:
+        cmd = kwargs.get("args")
+        if cmd is None:
+            cmd = popenargs[0]
+        error = subprocess.CalledProcessError(retcode, cmd)
+        error.output = output
+        raise error
+    return output
+
+
 class MoveFiles(SimpleTask):
     def __init__(self):
         SimpleTask.__init__(self, "MoveFiles")
@@ -113,6 +136,19 @@ class MoveFiles(SimpleTask):
               "%(data_dir)s/%(warc_file_base)s.warc.gz" % item)
 
         shutil.rmtree("%(item_dir)s" % item)
+
+        try:
+            lines = check_output([
+                "zgrep", "-P", "-o", '<option value=".+">', "%(data_dir)s/%(warc_file_base)s.warc.gz" % item]).split("\n")
+            usernames = set(l.split('"')[1] for l in lines if l.strip() and not "schedule=" in l)
+        except KeyboardInterrupt:
+            raise
+        except:
+            print traceback.format_exc()
+            print "Continuing anyway..."
+            usernames = []
+        with open("%(data_dir)s/%(warc_file_base)s.friends" % item, "wb") as f:
+            f.write("\n".join(usernames) + "\n")
 
 
 wget_args = [
@@ -193,7 +229,8 @@ pipeline = Pipeline(
             downloader=downloader,
             version=VERSION,
             files=[
-                ItemInterpolation("%(data_dir)s/%(warc_file_base)s.warc.gz")
+                ItemInterpolation("%(data_dir)s/%(warc_file_base)s.warc.gz"),
+                ItemInterpolation("%(data_dir)s/%(warc_file_base)s.friends")
                 ],
             rsync_target_source_path=ItemInterpolation("%(data_dir)s/"),
             rsync_extra_args=[
